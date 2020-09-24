@@ -1,0 +1,16 @@
+{
+  "HideGift": false,
+  "NormalGift": "普通猫粮",
+  "YAAAAAGift": "高级猫粮",
+  "LoveText": "点亮爱心",
+  "FollowText": "关注了主播",
+  "JoinText": "加入直播间",
+  "QuitText": "离开直播间",
+  "AvatarRefreshRate": 86400,
+  "BanWords": ["b站", "bilibili", "Bilibili"],
+  "UserMarks": {
+    "35119946": "开发者",
+    "52326": "AC娘",
+    "175325": "双月佬"
+  }
+}
