@@ -12,11 +12,30 @@ import Long from 'long';
 interface Danmaku {
   content: string;
   sendTimeMs: Long;
-  userInfo: {
-    userId: Long;
-    nickname: string;
-    badge: string;
-  };
+  userInfo: UserInfo;
+}
+
+interface UserInfo {
+  userId: Long;
+  nickname: string;
+  badge: string;
+}
+
+function arrCompose(arr: Danmaku[]) {
+  const userArr: UserInfo[] = [];
+  console.log(arr.length);
+  for (let index = 0; index < arr.length; index += 1) {
+    const danmaku = arr[index];
+    console.log(userArr.length);
+    console.log(danmaku.userInfo);
+    if (userArr.length === 0) userArr.push(danmaku.userInfo);
+    for (let n = 0; n < userArr.length; n += 1) {
+      if (danmaku.userInfo.userId.toString() === userArr[n].userId.toString())
+        break;
+      else userArr.push(danmaku.userInfo);
+    }
+  }
+  return userArr;
 }
 
 export default class Lottery extends React.Component<any, any> {
@@ -26,12 +45,17 @@ export default class Lottery extends React.Component<any, any> {
 
   start = false;
 
+  interval: any;
+
   constructor(props: Props<never>) {
     super(props);
     this.state = {
       tips: '未连接',
       danmakuArr: [],
       winner: null,
+      startTime: '',
+      endTime: '',
+      buttonState: false,
     };
   }
 
@@ -43,18 +67,36 @@ export default class Lottery extends React.Component<any, any> {
     this.content = e.currentTarget.value;
   };
 
+  handleStartTimeChange = (e: { currentTarget: { value: string } }) => {
+    this.setState({ startTime: e.currentTarget.value });
+  };
+
+  handleEndTimeChange = (e: { currentTarget: { value: string } }) => {
+    this.setState({ endTime: e.currentTarget.value });
+  };
+
   handleStart = () => {
-    this.start = true;
+    const start: string = this.state.startTime;
+    const end: string = this.state.endTime;
+    this.setState({ buttonState: true });
+    this.interval = setInterval(() => {
+      if (moment().format('hh:mm') === moment(start).format('hh:mm')) {
+        this.start = true;
+      }
+      if (moment().isAfter(end)) {
+        this.handleLottery();
+      }
+      console.log('runing');
+    }, 1000);
   };
 
   handleLottery = () => {
     this.start = false;
-    const n = Math.floor(
-      (Math.random() * 1000000) % this.state.danmakuArr.length
-    );
-    console.log();
-    console.log(this.state.danmakuArr[n]);
-    this.setState({ winner: this.state.danmakuArr[n] });
+    const lotteries = arrCompose(this.state.danmakuArr);
+    console.log(lotteries);
+    const n = Math.floor((Math.random() * 1000000) % lotteries.length);
+    clearInterval(this.interval);
+    this.setState({ winner: lotteries[n], buttonState: false });
   };
 
   handleConnect = () => {
@@ -65,7 +107,8 @@ export default class Lottery extends React.Component<any, any> {
           this.setState({ tips: '已连接' });
         });
         ac_client.on('danmaku', (danmaku: Danmaku) => {
-          if (this.start && danmaku.content === this.content) {
+          if (this.start) {
+            // && danmaku.content === this.content) {
             const a: Danmaku[] = this.state.danmakuArr;
             a.push(danmaku);
             this.setState({ danmakuArr: a });
@@ -94,13 +137,38 @@ export default class Lottery extends React.Component<any, any> {
         >
           连接
         </Button>
-
+        <br />
         <TextField
           onChange={this.handleContentInput}
           id="standard-basic"
           label="抽奖文字"
         />
+
+        <TextField
+          disabled={this.state.buttonState}
+          id="datetime-local-1"
+          label="开始时间"
+          type="datetime-local"
+          defaultValue={moment().format('yyyy-MM-DDTHH:mm')}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          onChange={this.handleStartTimeChange}
+        />
+
+        <TextField
+          disabled={this.state.buttonState}
+          id="datetime-local"
+          label="结束时间"
+          type="datetime-local"
+          defaultValue={moment().format('yyyy-MM-DDTHH:mm')}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          onChange={this.handleEndTimeChange}
+        />
         <Button
+          disabled={this.state.buttonState}
           variant="contained"
           onClick={() => {
             this.handleStart();
@@ -109,20 +177,16 @@ export default class Lottery extends React.Component<any, any> {
         >
           开始
         </Button>
-        <Button
-          variant="contained"
-          onClick={() => {
-            this.handleLottery();
-          }}
-          color="primary"
-        >
-          结束
-        </Button>
         <div>{this.state.tips}</div>
         <div>
-          恭喜:{this.state.winner ? this.state.winner.userInfo.nickname : ''}
+          恭喜 :
+          {this.state.winner
+            ? `${
+                this.state.winner.nickname
+              }uid:${this.state.winner.userId.toString()}`
+            : ''}
         </div>
-        <div style={{ overflowY: 'scroll', width: '100%', height: '500px' }}>
+        <div style={{ overflowY: 'scroll', width: '100%', height: '400px' }}>
           <table>
             <thead>
               <tr>
@@ -132,19 +196,21 @@ export default class Lottery extends React.Component<any, any> {
                 <th>内容</th>
               </tr>
             </thead>
+            <tbody>
+              {this.state.danmakuArr.map((element: Danmaku) => {
+                return (
+                  <tr key={element.sendTimeMs.toString()}>
+                    <td>
+                      {moment(element.sendTimeMs.toNumber()).format('hh:mm:ss')}
+                    </td>
+                    <td>{element.userInfo.nickname}</td>
+                    <td>{element.userInfo.userId.toString()}</td>
+                    <td>{element.content}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
           </table>
-          {this.state.danmakuArr.map((element: Danmaku) => {
-            return (
-              <tr key={element.sendTimeMs.toString()}>
-                <td>
-                  {moment(element.sendTimeMs.toNumber()).format('hh:mm:ss')}
-                </td>
-                <td>{element.userInfo.nickname}</td>
-                <td>{element.userInfo.userId.toString()}</td>
-                <td>{element.content}</td>
-              </tr>
-            );
-          })}
         </div>
       </form>
     );
