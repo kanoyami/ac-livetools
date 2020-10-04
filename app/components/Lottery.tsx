@@ -23,11 +23,8 @@ interface UserInfo {
 
 function arrCompose(arr: Danmaku[]) {
   const userArr: UserInfo[] = [];
-  console.log(arr.length);
   for (let index = 0; index < arr.length; index += 1) {
     const danmaku = arr[index];
-    console.log(userArr.length);
-    console.log(danmaku.userInfo);
     if (userArr.length === 0) userArr.push(danmaku.userInfo);
     for (let n = 0; n < userArr.length; n += 1) {
       if (danmaku.userInfo.userId.toString() === userArr[n].userId.toString())
@@ -93,7 +90,6 @@ export default class Lottery extends React.Component<any, any> {
   handleLottery = () => {
     this.start = false;
     const lotteries = arrCompose(this.state.danmakuArr);
-    console.log(lotteries);
     const n = Math.floor((Math.random() * 1000000) % lotteries.length);
     clearInterval(this.interval);
     this.setState({ winner: lotteries[n], buttonState: false });
@@ -107,8 +103,7 @@ export default class Lottery extends React.Component<any, any> {
           this.setState({ tips: '已连接' });
         });
         ac_client.on('danmaku', (danmaku: Danmaku) => {
-          if (this.start) {
-            // && danmaku.content === this.content) {
+          if (this.start && danmaku.content === this.content) {
             const a: Danmaku[] = this.state.danmakuArr;
             a.push(danmaku);
             this.setState({ danmakuArr: a });
@@ -191,8 +186,8 @@ export default class Lottery extends React.Component<any, any> {
             <thead>
               <tr>
                 <th>时间</th>
-                <th>uid</th>
                 <th>昵称</th>
+                <th>uid</th>
                 <th>内容</th>
               </tr>
             </thead>

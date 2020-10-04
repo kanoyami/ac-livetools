@@ -57,6 +57,7 @@ const useStyles = makeStyles((theme: Theme) =>
     content: {
       flexGrow: 1,
       padding: theme.spacing(3),
+      backgroundImage: ' linear-gradient(to top, #ebc0fd 0%, #d9ded8 100%)',
     },
   })
 );
@@ -92,6 +93,14 @@ export default function Frame(props: Props) {
               <InboxIcon />
             </ListItemIcon>
             <ListItemText style={{ color: 'black' }}> 抽奖工具 </ListItemText>
+          </ListItem>
+        </Link>
+        <Link to="/vote">
+          <ListItem button>
+            <ListItemIcon>
+              <InboxIcon />
+            </ListItemIcon>
+            <ListItemText style={{ color: 'black' }}> 投票统计 </ListItemText>
           </ListItem>
         </Link>
         <ListItem button onClick={handleOpenDanmakuju}>

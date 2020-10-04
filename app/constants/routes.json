@@ -1,5 +1,6 @@
 {
   "HOME": "/",
   "COUNTER": "/counter",
-  "LOTTERY": "/lottery"
+  "LOTTERY": "/lottery",
+  "VOTE":"/vote"
 }
